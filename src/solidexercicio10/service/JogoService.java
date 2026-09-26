@@ -123,6 +123,8 @@ public class JogoService {
         return 5;
     }
 
+    //dif media? 
+    //PAREI AQUI
     private Missao criarNovaMissao(Dificuldade dificuldade, int minX, int maxX, int minY, int maxY) {
         int passageiros = dificuldade == Dificuldade.FACIL ? 4 : 5;
         int asteroides = dificuldade == Dificuldade.FACIL ? 1 : dificuldade == Dificuldade.DIFICIL ? 3 : 2;
