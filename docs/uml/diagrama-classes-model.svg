@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820">
+  <style>
+    text { font-family: Arial, sans-serif; fill: #1f2937; }
+    .box { fill: #f8fafc; stroke: #334155; stroke-width: 2; }
+    .title { font-weight: bold; }
+    .line { stroke: #475569; stroke-width: 2; fill: none; }
+    .dash { stroke-dasharray: 8 6; }
+  </style>
+  <text x="600" y="32" text-anchor="middle" font-size="22" class="title">solidexercicio10.model - diagrama de classes</text>
+
+  <rect class="box" x="50" y="80" width="180" height="90"/>
+  <text x="140" y="108" text-anchor="middle" class="title">Posicionavel</text>
+  <text x="65" y="135" font-size="14">+ getX(): int</text>
+  <text x="65" y="155" font-size="14">+ getY(): int</text>
+
+  <rect class="box" x="280" y="80" width="180" height="90"/>
+  <text x="370" y="108" text-anchor="middle" class="title">Movel</text>
+  <text x="295" y="145" font-size="14">+ mover(dx, dy): void</text>
+
+  <rect class="box" x="160" y="250" width="230" height="120"/>
+  <text x="275" y="280" text-anchor="middle" class="title">EntidadeMapa</text>
+  <text x="180" y="310" font-size="14">- x: int</text>
+  <text x="180" y="330" font-size="14">- y: int</text>
+  <text x="180" y="355" font-size="14">+ getSimbolo(): String</text>
+
+  <rect class="box" x="50" y="460" width="230" height="120"/>
+  <text x="165" y="490" text-anchor="middle" class="title">Passageiro</text>
+  <text x="70" y="520" font-size="14">- nome: String</text>
+  <text x="70" y="540" font-size="14">- tipo: String</text>
+  <text x="70" y="565" font-size="14">+ getPontuacao(): int</text>
+
+  <rect class="box" x="330" y="460" width="150" height="70"/>
+  <text x="405" y="490" text-anchor="middle" class="title">Professor</text>
+  <text x="345" y="515" font-size="14">10 pontos</text>
+  <rect class="box" x="330" y="550" width="150" height="70"/>
+  <text x="405" y="580" text-anchor="middle" class="title">Engenheiro</text>
+  <text x="345" y="605" font-size="14">15 pontos</text>
+  <rect class="box" x="330" y="640" width="150" height="70"/>
+  <text x="405" y="670" text-anchor="middle" class="title">Astronauta</text>
+  <text x="345" y="695" font-size="14">20 pontos</text>
+
+  <rect class="box" x="560" y="250" width="210" height="100"/>
+  <text x="665" y="280" text-anchor="middle" class="title">Nave</text>
+  <text x="575" y="310" font-size="14">capacidade, vidas</text>
+  <text x="575" y="330" font-size="14">+ embarcar(): boolean</text>
+
+  <rect class="box" x="840" y="250" width="210" height="100"/>
+  <text x="945" y="280" text-anchor="middle" class="title">Inimigo</text>
+  <text x="855" y="310" font-size="14">+ mover(Random, limites)</text>
+  <text x="855" y="330" font-size="14">movimento limitado</text>
+
+  <rect class="box" x="560" y="460" width="210" height="100"/>
+  <text x="665" y="490" text-anchor="middle" class="title">Asteroide</text>
+  <text x="575" y="525" font-size="14">entidade estática</text>
+
+  <rect class="box" x="840" y="460" width="240" height="150"/>
+  <text x="960" y="490" text-anchor="middle" class="title">Missao</text>
+  <text x="855" y="520" font-size="14">coordena entidades</text>
+  <text x="855" y="545" font-size="14">embarque e colisões</text>
+  <text x="855" y="570" font-size="14">listas encapsuladas</text>
+
+  <path class="line" d="M140 170 L220 250"/>
+  <path class="line" d="M370 170 L330 250"/>
+  <path class="line" d="M275 370 L165 460"/>
+  <path class="line" d="M275 370 L665 250"/>
+  <path class="line" d="M275 370 L945 250"/>
+  <path class="line" d="M275 370 L665 460"/>
+  <path class="line" d="M165 580 L330 495"/>
+  <path class="line" d="M165 580 L330 585"/>
+  <path class="line" d="M165 580 L330 675"/>
+  <path class="line dash" d="M665 350 L900 460"/>
+  <path class="line dash" d="M945 350 L960 460"/>
+  <path class="line dash" d="M665 350 L900 520"/>
+</svg>
