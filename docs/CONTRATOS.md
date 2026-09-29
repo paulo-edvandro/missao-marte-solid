@@ -6,7 +6,7 @@ Este documento fixa as **assinaturas públicas mínimas** para o trabalho em par
 
 | Pessoa | Arquivos sob sua responsabilidade | Branch sugerida |
 | --- | --- | --- |
-| Paulo | `Main.java`, `service/JogoService.java`, integração e README final | `refactor/fluxo` |
+| Paulo | `Main.java`, `service/JogoService.java`, `service/FabricaMissao.java`, `presentation/JogoConsole.java`, integração e README final | `refactor/fluxo` |
 | Lucas | `model/*.java`, diagrama de classes | `refactor/modelo` |
 | Emerson | `repository/*.java`, `presentation/MapaRenderer.java`, diagrama de pacotes | `refactor/ranking-apresentacao` |
 
@@ -109,12 +109,25 @@ Imports necessários: `solidexercicio10.model.Dificuldade`, `solidexercicio10.mo
 
 ```java
 public class JogoService {
-    public JogoService(RankingRepository rankingRepository, MapaRenderer mapaRenderer, Random random);
+    public JogoService(RankingRepository rankingRepository, MapaRenderer mapaRenderer,
+                       Random random, JogoConsole console, FabricaMissao fabricaMissao);
     public void executarLoop(Scanner scanner);
 }
 ```
 
-`Main` cria `new ArquivoRankingRepository("ranking-solid-exercicio10.json")`, `new MapaRenderer()` e `new Random()`, passa essas dependências ao `JogoService` e inicia o loop com `Scanner`. O serviço consulta e salva usando o contrato do repositório. Em vitória, só salva se a pontuação for positiva e entrar no Top 5; o menu pede confirmação antes de limpar o ranking. A vitória exige todos os passageiros embarcados **e** a nave em `(0,0)`.
+`Main` cria `new ArquivoRankingRepository("ranking-solid-exercicio10.json")`, `new MapaRenderer()`, `new Random()`, `new JogoConsole(System.out)` e `FabricaMissao.padrao()`, passa essas dependências ao `JogoService` e inicia o loop com `Scanner`. O construtor de três argumentos foi substituído pelo de cinco; os testes e o ponto de entrada foram atualizados juntos. O serviço consulta e salva usando o contrato do repositório. Em vitória, só salva se a pontuação for positiva e entrar no Top 5; o menu pede confirmação antes de limpar o ranking. A vitória exige todos os passageiros embarcados **e** a nave em `(0,0)`.
+
+## Refatoração da parte de Paulo — 29/09/2026
+
+- `JogoConsole` recebe `PrintStream` e só apresenta dados e mensagens. Não lê
+  arquivos nem decide regras. O serviço lê os comandos e decide qual saída solicitar.
+- `FabricaMissao` recebe `List<BiFunction<Integer, Integer, Passageiro>>` pelo
+  construtor, ou usa a configuração original via `padrao()`. `criar` recebe
+  dificuldade, `Random` e limites. Não há seleção por tipo concreto no serviço.
+- Modelo e diagramas de classes do Lucas permanecem sem alterações.
+- Emerson deve complementar o diagrama de pacotes com a dependência
+  `presentation --> repository` (`RankingEntry`) e explicitar o contrato do ranking.
+- `REVISAO-SOLID.md` será elaborado após concluir a implementação integrada.
 
 ## Verificações antes de abrir PR
 

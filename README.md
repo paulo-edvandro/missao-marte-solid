@@ -10,7 +10,7 @@ Repositório compartilhado: https://github.com/paulo-edvandro/missao-marte-solid
 - Lucas Alencar (`luken6406`): entidades e regras do modelo, diagrama de classes.
 - Emerson (`EmsRibeiro`): ranking em JSON, renderização do mapa e diagrama de pacotes.
 
-As correções de integração na `branch-correçao` complementam a persistência,
+As correções de integração complementam a persistência,
 seus testes e a renderização, sem alterar os arquivos do modelo ou o diagrama
 sob responsabilidade de Lucas. O histórico de commits registra essas etapas.
 
@@ -76,11 +76,19 @@ plataforma quando está na origem; ao sair, a plataforma reaparece se estiver li
 
 ## Organização e decisões de projeto
 
-- `Main` cria e conecta as dependências.
+- `Main` cria e conecta ranking, renderizador, console, fábrica de missão e gerador aleatório.
 - `model` mantém entidades, movimento, embarque e colisões sem imprimir ou
   persistir dados. As subclasses definem os pontos por `getPontuacao()`.
-- `service/JogoService` coordena menu, partida e seleção de pontuação para o
-  ranking. Recebe `RankingRepository`, `MapaRenderer` e `Random` pelo construtor.
+- `service/JogoService` coordena as opções do menu, partida e seleção de pontuação
+  para o ranking, sem formatar ou imprimir mensagens. Recebe suas dependências
+  pelo construtor.
+- `service/FabricaMissao` monta a nave e distribui as entidades. Seu catálogo
+  recebe funções que criam passageiros. A configuração padrão preserva nomes,
+  ordem e quantidades do original; um catálogo diferente pode inserir novos tipos
+  sem editar o serviço. Um catálogo ampliado ajusta a capacidade da nave.
+- `presentation/JogoConsole` apresenta menu, solicitações, mensagens, ranking e
+  estatísticas usando um `PrintStream` recebido. Não movimenta entidades, decide
+  vitória ou acessa arquivos.
 - `presentation/MapaRenderer` desenha o mapa sem alterar a missão. A orientação
   das linhas acompanha o original: `w` diminui `y` e move a nave para cima.
 - `repository/RankingRepository` define operações de persistência e propaga
@@ -105,7 +113,9 @@ não sobrescreve um ranking cuja leitura falhou. O usuário pode resetá-lo pelo
   [fonte Mermaid](docs/uml/diagrama-pacotes.mmd): dependências entre as camadas.
   O serviço importa `RankingRepository`, enquanto `Main` instancia
   `ArquivoRankingRepository`. A fonte atual mostra dependências por pacote;
-  essa distinção deve ser explicitada no diagrama antes da entrega.
+  essa distinção deve ser explicitada no diagrama antes da entrega. Após a
+  refatoração de Paulo, `presentation` também utiliza `RankingEntry` de
+  `repository` para apresentar os dados; Emerson deve atualizar a fonte e a imagem.
 
 ## Testes
 
@@ -116,10 +126,16 @@ javac -encoding UTF-8 -cp out -d out tests/*.java
 java -cp out JogoServiceTest
 java -cp out ArquivoRankingRepositoryTest
 java -cp out MapaRendererTest
+java -cp out SolidPauloTest
 ```
 
 Todos passaram na validação de 29/09/2026 com Java 17. Os testes de arquivo
 usam um diretório temporário e não modificam o ranking do jogador.
+
+`SolidPauloTest` verifica uma partida completa com um passageiro novo (`Cientista`)
+fornecido pelo catálogo. A pontuação final passa de 82 para 97 pela diferença de
+bônus, sem alterar `JogoService`. Também verifica dificuldades, capacidade,
+posições livres e a busca alternativa quando o gerador repete a mesma posição.
 
 Resultados e procedimentos: [docs/TESTES-FLUXO.md](docs/TESTES-FLUXO.md).
 As verificações anteriores do modelo estão em
@@ -127,9 +143,13 @@ As verificações anteriores do modelo estão em
 
 ## Limitações e pendências da entrega
 
-- O serviço ainda imprime menu e mensagens: a separação da apresentação é parcial.
-- Os pontos usam polimorfismo, mas novos tipos de passageiros exigem editar
-  `criarPassageiro`. OCP não é atendido de forma absoluta.
+- O jogo permanece um aplicativo de console. A leitura com `Scanner` e a
+  coordenação das opções ficam no serviço; textos e formatos ficam na apresentação.
+- A fábrica exige pelo menos cinco entradas de catálogo para preservar a
+  configuração padrão. `Main` pode fornecer um catálogo diferente pelo construtor
+  da fábrica. Quantidades e regras de dificuldade continuam explícitas na fábrica.
+- A apresentação usa classes concretas pequenas; não foi criada uma interface
+  para cada saída de console. DIP é demonstrado principalmente por `RankingRepository`.
 - O leitor de JSON aceita o formato específico do ranking, não estruturas
   JSON arbitrárias. Não há escrita atômica ou controle de gravação simultânea.
 - Símbolos e limite do mapa são mudanças visuais e de validação deliberadas.

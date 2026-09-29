@@ -9,6 +9,8 @@ import java.util.Random;
 import java.util.Scanner;
 import solidexercicio10.model.Dificuldade;
 import solidexercicio10.presentation.MapaRenderer;
+import solidexercicio10.presentation.JogoConsole;
+import solidexercicio10.service.FabricaMissao;
 import solidexercicio10.repository.ArquivoRankingRepository;
 import solidexercicio10.repository.RankingEntry;
 import solidexercicio10.service.JogoService;
@@ -48,7 +50,8 @@ public class ArquivoRankingRepositoryTest {
         try (var saida = new PrintStream(bytes, true, StandardCharsets.UTF_8)) {
             System.setOut(saida);
             new JogoService(new ArquivoRankingRepository(arquivo.toString()),
-                    new MapaRenderer(), new PosicoesFixas()).executarLoop(new Scanner(comandos));
+                    new MapaRenderer(), new PosicoesFixas(),
+                    new JogoConsole(saida), FabricaMissao.padrao()).executarLoop(new Scanner(comandos));
         } finally {
             System.setOut(anterior);
         }

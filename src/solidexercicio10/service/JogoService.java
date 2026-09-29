@@ -7,16 +7,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Scanner;
-import solidexercicio10.model.Asteroide;
-import solidexercicio10.model.Astronauta;
 import solidexercicio10.model.Dificuldade;
-import solidexercicio10.model.Engenheiro;
-import solidexercicio10.model.Inimigo;
 import solidexercicio10.model.Missao;
 import solidexercicio10.model.Nave;
 import solidexercicio10.model.Passageiro;
-import solidexercicio10.model.Professor;
 import solidexercicio10.presentation.MapaRenderer;
+import solidexercicio10.presentation.JogoConsole;
+import solidexercicio10.presentation.JogoConsole.Encerramento;
 import solidexercicio10.repository.RankingEntry;
 import solidexercicio10.repository.RankingRepository;
 
@@ -26,8 +23,13 @@ public class JogoService {
     private final RankingRepository rankingRepository;
     private final MapaRenderer mapaRenderer;
     private final Random random;
+    private final JogoConsole console;
+    private final FabricaMissao fabricaMissao;
 
-    public JogoService(RankingRepository rankingRepository, MapaRenderer mapaRenderer, Random random) {
+    public JogoService(RankingRepository rankingRepository, MapaRenderer mapaRenderer, Random random,
+                       JogoConsole console, FabricaMissao fabricaMissao) {
+        this.console = Objects.requireNonNull(console);
+        this.fabricaMissao = Objects.requireNonNull(fabricaMissao);
         this.rankingRepository = Objects.requireNonNull(rankingRepository);
         this.mapaRenderer = Objects.requireNonNull(mapaRenderer);
         this.random = Objects.requireNonNull(random);
@@ -35,11 +37,10 @@ public class JogoService {
 
     public void executarLoop(Scanner scanner) {
         Objects.requireNonNull(scanner);
-        exibirBoasVindas();
+        console.boasVindas();
 
         while (true) {
-            exibirMenu();
-            System.out.print("Escolha uma opção: ");
+            console.menu();
             if (!scanner.hasNextLine()) {
                 return;
             }
@@ -50,30 +51,16 @@ public class JogoService {
                 case "2" -> exibirRanking();
                 case "3" -> resetarRanking(scanner);
                 case "4" -> {
-                    System.out.println("Obrigado por jogar a Missão Marte Unifor!");
+                    console.despedida();
                     return;
                 }
-                default -> System.out.println("Opção inválida. Tente novamente.");
+                default -> console.opcaoInvalida();
             }
         }
     }
 
-    private void exibirBoasVindas() {
-        System.out.println("================================================");
-        System.out.println("        MISSÃO MARTE UNIFOR — SOLID");
-        System.out.println("================================================");
-    }
-
-    private void exibirMenu() {
-        System.out.println("\n--- MENU PRINCIPAL ---");
-        System.out.println("1. Iniciar Nova Missão");
-        System.out.println("2. Visualizar Ranking Top 5");
-        System.out.println("3. Resetar Histórico de Ranking");
-        System.out.println("4. Sair do Jogo");
-    }
-
     private void iniciarPartida(Scanner scanner) {
-        System.out.print("\nDigite o nome do piloto: ");
+        console.pedirNome();
         if (!scanner.hasNextLine()) {
             return;
         }
@@ -82,13 +69,13 @@ public class JogoService {
             nome = "Piloto Anônimo";
         }
 
-        System.out.print("Escolha a Dificuldade (facil/medio/dificil): ");
+        console.pedirDificuldade();
         if (!scanner.hasNextLine()) {
             return;
         }
         Dificuldade dificuldade = Dificuldade.deString(scanner.nextLine());
 
-        System.out.print("Tamanho do mapa (2 a 50; ex: 5 para -5 a +5): ");
+        console.pedirTamanhoMapa();
         if (!scanner.hasNextLine()) {
             return;
         }
@@ -98,15 +85,13 @@ public class JogoService {
         int minY = -tamanhoMapa;
         int maxY = tamanhoMapa;
 
-        System.out.printf("\nIniciando missão de %s na dificuldade %s; mapa de %d a %d.%n",
-                nome, dificuldade, minX, maxX);
-        System.out.println("Pressione Enter para decolar!");
+        console.prepararDecolagem(nome, dificuldade, minX, maxX);
         if (!scanner.hasNextLine()) {
             return;
         }
         scanner.nextLine();
 
-        Missao missao = criarNovaMissao(dificuldade, minX, maxX, minY, maxY);
+        Missao missao = fabricaMissao.criar(dificuldade, random, minX, maxX, minY, maxY);
         jogarPartida(scanner, nome, dificuldade, missao, minX, maxX, minY, maxY);
     }
 
@@ -119,81 +104,8 @@ public class JogoService {
             }
         } catch (NumberFormatException ignored) {
         }
-        System.out.println("Tamanho inválido. Usando o padrão (5).");
+        console.tamanhoInvalido();
         return 5;
-    }
-
-    private Missao criarNovaMissao(Dificuldade dificuldade, int minX, int maxX, int minY, int maxY) {
-        int passageiros = dificuldade == Dificuldade.FACIL ? 4 : 5;
-        int asteroides = dificuldade == Dificuldade.FACIL ? 1 : dificuldade == Dificuldade.DIFICIL ? 3 : 2;
-        int inimigos = asteroides;
-        Missao missao = new Missao(new Nave("A-1", 5));
-
-        for (int i = 0; i < passageiros; i++) {
-            int[] posicao = sortearPosicaoLivre(missao, minX, maxX, minY, maxY);
-            missao.adicionarPassageiro(criarPassageiro(i, posicao[0], posicao[1]));
-        }
-        for (int i = 0; i < asteroides; i++) {
-            int[] posicao = sortearPosicaoLivre(missao, minX, maxX, minY, maxY);
-            missao.adicionarAsteroide(new Asteroide(posicao[0], posicao[1]));
-        }
-        for (int i = 0; i < inimigos; i++) {
-            int[] posicao = sortearPosicaoLivre(missao, minX, maxX, minY, maxY);
-            missao.adicionarInimigo(new Inimigo(posicao[0], posicao[1]));
-        }
-        return missao;
-    }
-
-    private Passageiro criarPassageiro(int indice, int x, int y) {
-        return switch (indice % 5) {
-            case 0 -> new Professor("Dr. Silva", x, y);
-            case 1 -> new Engenheiro("Eng. Rosa", x, y);
-            case 2 -> new Professor("Dr. Lima", x, y);
-            case 3 -> new Engenheiro("Eng. Carlos", x, y);
-            default -> new Astronauta("Ast. Maria", x, y);
-        };
-    }
-
-    private int[] sortearPosicaoLivre(Missao missao, int minX, int maxX, int minY, int maxY) {
-        int largura = maxX - minX + 1;
-        int altura = maxY - minY + 1;
-        for (int tentativa = 0; tentativa < largura * altura * 2; tentativa++) {
-            int x = random.nextInt(largura) + minX;
-            int y = random.nextInt(altura) + minY;
-            if (!posicaoOcupada(missao, x, y)) {
-                return new int[] {x, y};
-            }
-        }
-        for (int y = minY; y <= maxY; y++) {
-            for (int x = minX; x <= maxX; x++) {
-                if (!posicaoOcupada(missao, x, y)) {
-                    return new int[] {x, y};
-                }
-            }
-        }
-        throw new IllegalStateException("Mapa sem posições livres para criar a missão");
-    }
-
-    private boolean posicaoOcupada(Missao missao, int x, int y) {
-        if (missao.getNave().getX() == x && missao.getNave().getY() == y) {
-            return true;
-        }
-        for (Passageiro passageiro : missao.getPassageiros()) {
-            if (passageiro.getX() == x && passageiro.getY() == y) {
-                return true;
-            }
-        }
-        for (Asteroide asteroide : missao.getAsteroides()) {
-            if (asteroide.getX() == x && asteroide.getY() == y) {
-                return true;
-            }
-        }
-        for (Inimigo inimigo : missao.getInimigos()) {
-            if (inimigo.getX() == x && inimigo.getY() == y) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private int pontuacaoInicial(Dificuldade dificuldade) {
@@ -213,12 +125,9 @@ public class JogoService {
 
         while (true) {
             mapaRenderer.desenhar(missao, minX, maxX, minY, maxY, score, nome);
-            System.out.printf("Nave em (%d,%d) | Pontos: %d | Vidas: %d | A bordo: %d/%d | Restantes: %d%n",
-                    nave.getX(), nave.getY(), score, nave.getVidas(),
-                    nave.getPassageiros().size(), nave.getCapacidade(), missao.getPassageiros().size());
-            System.out.print("Comando (w/s/a/d/c/q): ");
+            console.estadoPartida(missao, score);
             if (!scanner.hasNextLine()) {
-                finalizarPartida("Missão encerrada: fim da entrada.", nave, score, movimentos, tempoInicio);
+                finalizarPartida(Encerramento.FIM_ENTRADA, nave, score, movimentos, tempoInicio);
                 return;
             }
             String entrada = scanner.nextLine().trim().toLowerCase(java.util.Locale.ROOT);
@@ -227,27 +136,26 @@ public class JogoService {
             }
             char comando = entrada.charAt(0);
             if (comando == 'q') {
-                finalizarPartida("Missão abortada pelo piloto.", nave, score, movimentos, tempoInicio);
+                finalizarPartida(Encerramento.ABANDONO, nave, score, movimentos, tempoInicio);
                 return;
             }
             if (comando == 'c') {
                 Passageiro passageiro = missao.passagemNaPosicao();
                 if (passageiro == null) {
-                    System.out.println("Nenhum passageiro nesta posição.");
+                    console.nenhumPassageiro();
                 } else if (missao.embarcarPassageiroNaPosicao()) {
                     int bonus = passageiro.getPontuacao();
                     score += bonus;
-                    System.out.printf("Passageiro %s embarcado com sucesso! +%d pontos!%n",
-                            passageiro.getNome(), bonus);
+                    console.embarque(passageiro.getNome(), bonus);
                 } else {
-                    System.out.println("Nave cheia! Não há espaço para mais passageiros.");
+                    console.naveCheia();
                 }
             } else if (comando == 'w' || comando == 's' || comando == 'a' || comando == 'd') {
                 nave.moverComLimites(comando, minX, maxX, minY, maxY);
                 score--;
                 movimentos++;
             } else {
-                System.out.println("Comando inválido.");
+                console.comandoInvalido();
                 continue;
             }
 
@@ -255,52 +163,46 @@ public class JogoService {
             if (missao.verificaColisao()) {
                 nave.perderVida();
                 if (nave.getVidas() == 0) {
-                    finalizarPartida("GAME OVER! A nave foi destruída.", nave, score, movimentos, tempoInicio);
+                    finalizarPartida(Encerramento.SEM_VIDAS, nave, score, movimentos, tempoInicio);
                     return;
                 }
-                System.out.printf("Alerta! Colisão detectada! Vidas restantes: %d%n", nave.getVidas());
+                console.colisao(nave.getVidas());
             }
             if (score <= 0) {
-                finalizarPartida("Combustível/Pontuação zerada! Missão perdida.",
+                finalizarPartida(Encerramento.SEM_PONTOS,
                         nave, score, movimentos, tempoInicio);
                 return;
             }
             if (missao.todosEmbarcados()) {
                 if (nave.getX() == 0 && nave.getY() == 0) {
-                    long tempoSegundos = finalizarPartida("Missão cumprida! Nave acoplada à plataforma em (0,0).",
+                    long tempoSegundos = finalizarPartida(Encerramento.VITORIA,
                             nave, score, movimentos, tempoInicio);
                     salvarSeEntrarNoRanking(nome, score, dificuldade,
                             nave.getPassageiros().size(), tempoSegundos);
                     return;
                 }
-                System.out.println("Todos resgatados! Retorne à plataforma L em (0,0).");
+                console.retornoPouso();
             }
         }
     }
 
-    private long finalizarPartida(String mensagem, Nave nave, int score, int movimentos, long tempoInicio) {
+    private long finalizarPartida(Encerramento motivo, Nave nave, int score, int movimentos, long tempoInicio) {
         long tempoSegundos = Math.max(0, (System.currentTimeMillis() - tempoInicio) / 1000);
-        System.out.println(mensagem);
+        console.encerramento(motivo);
         exibirEstatisticas(score, movimentos, tempoSegundos, nave.getPassageiros().size());
         return tempoSegundos;
     }
 
     private void exibirEstatisticas(int score, int movimentos, long tempoSegundos, int passageiros) {
-        System.out.println("Estatísticas da Partida:");
-        System.out.printf(" - Pontuação Final: %d pontos%n", score);
-        System.out.printf(" - Movimentos Efetuados: %d%n", movimentos);
-        System.out.printf(" - Tempo de Jogo: %d segundos%n", tempoSegundos);
-        System.out.printf(" - Passageiros Resgatados: %d%n", passageiros);
-        
+        console.estatisticas(score, movimentos, tempoSegundos, passageiros);
+
         try {
             List<RankingEntry> ranking = rankingRepository.listar();
             if (!ranking.isEmpty()) {
-                RankingEntry primeiro = ranking.get(0);
-                System.out.printf(" - Recorde atual: %d pontos (Piloto: %s)%n",
-                        primeiro.score(), primeiro.name());
+                console.recorde(ranking.get(0));
             }
         } catch (IOException e) {
-            System.out.println("Aviso: Não foi possível verificar o recorde atual devido a uma falha de leitura.");
+            console.falhaRecorde();
         }
     }
 
@@ -319,36 +221,24 @@ public class JogoService {
                     LocalDateTime.now().format(DATA_RANKING), tempoSegundos);
             rankingRepository.salvar(entrada);
             if (novoRecorde) {
-                System.out.println("Novo recorde absoluto do sistema!");
+                console.novoRecorde();
             }
-            System.out.println("Parabéns! Você entrou para o Top 5 de pilotos!");
+            console.entradaTop5();
         } catch (IOException e) {
-            System.out.println("Erro grave: Falha ao salvar a sua pontuação no arquivo de ranking (" + e.getMessage() + ").");
+            console.falhaSalvar(e.getMessage());
         }
     }
 
     private void exibirRanking() {
-        System.out.println("\n====== RANKING TOP 5 PILOTOS ======");
         try {
-            List<RankingEntry> entradas = rankingRepository.listar();
-            if (entradas.isEmpty()) {
-                System.out.println("Nenhum registro encontrado. Seja o primeiro a jogar!");
-            } else {
-                int posicao = 1;
-                for (RankingEntry entrada : entradas) {
-                    System.out.printf("%d. %s - %d pts | Dificuldade: %s | Coletados: %d | Tempo: %ds | %s%n",
-                            posicao++, entrada.name(), entrada.score(), entrada.dificuldade(),
-                            entrada.passageirosColetados(), entrada.tempoJogo(), entrada.dataHora());
-                }
-            }
+            console.ranking(rankingRepository.listar());
         } catch (IOException e) {
-            System.out.println("Erro ao carregar o ranking (" + e.getMessage() + ").");
+            console.falhaLer(e.getMessage());
         }
-        System.out.println("===================================");
     }
 
     private void resetarRanking(Scanner scanner) {
-        System.out.print("Você realmente deseja limpar o histórico de ranking? (s/n): ");
+        console.confirmarReset();
         if (!scanner.hasNextLine()) {
             return;
         }
@@ -356,12 +246,12 @@ public class JogoService {
         if (resposta.equalsIgnoreCase("s") || resposta.equalsIgnoreCase("sim")) {
             try {
                 rankingRepository.limpar();
-                System.out.println("Ranking resetado com sucesso!");
+                console.resetConcluido();
             } catch (IOException e) {
-                System.out.println("Erro Crítico: Não foi possível limpar o ranking (" + e.getMessage() + ").");
+                console.falhaLimpar(e.getMessage());
             }
         } else {
-            System.out.println("Operação cancelada.");
+            console.resetCancelado();
         }
     }
 }
