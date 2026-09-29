@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 import solidexercicio10.presentation.MapaRenderer;
+import solidexercicio10.presentation.JogoConsole;
+import solidexercicio10.service.FabricaMissao;
 import solidexercicio10.repository.RankingEntry;
 import solidexercicio10.repository.RankingRepository;
 import solidexercicio10.service.JogoService;
@@ -50,7 +52,8 @@ public class JogoServiceTest {
         var output = new ByteArrayOutputStream();
         try (var ps = new PrintStream(output, true, StandardCharsets.UTF_8)) {
             System.setOut(ps);
-            new JogoService(ranking, new MapaRenderer(), new FixedRandom())
+            new JogoService(ranking, new MapaRenderer(), new FixedRandom(),
+                    new JogoConsole(ps), FabricaMissao.padrao())
                     .executarLoop(new Scanner(input));
         } finally {
             System.setOut(stdout);

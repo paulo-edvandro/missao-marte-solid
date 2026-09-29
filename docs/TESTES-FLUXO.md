@@ -8,7 +8,7 @@ na `branch-correçao`. O código original e os arquivos do modelo de Lucas
 não foram alterados nesta etapa.
 
 A versão original e a refatorada compilam com Java 17. O original foi
-comparado por conteúdo com os arquivos preservados no Git. Os três testes
+comparado por conteúdo com os arquivos preservados no Git. Os quatro testes
 executáveis abaixo passaram. Compilação não equivale a comprovar todo o
 comportamento possível; os cenários cobertos estão descritos a seguir.
 
@@ -22,6 +22,7 @@ javac -encoding UTF-8 -cp out -d out tests/*.java
 java -cp out JogoServiceTest
 java -cp out ArquivoRankingRepositoryTest
 java -cp out MapaRendererTest
+java -cp out SolidPauloTest
 ```
 
 Para verificar a compilação original:
@@ -90,6 +91,36 @@ Cenários aprovados:
 
 A documentação de modelagem ainda deve ser concluída pelos responsáveis.
 A revisão crítica SOLID será feita quando o projeto estiver pronto.
-O serviço mantém saída de console direta e um catálogo fixo de passageiros.
+O serviço delega saída de console a `JogoConsole` e criação a `FabricaMissao`.
+O construtor recebe todas as dependências; `Main` monta a configuração real.
 O JSON é específico para este formato e não há proteção contra duas instâncias
 escrevendo simultaneamente ou interrupção no meio da gravação.
+
+## Refatoração SOLID da parte de Paulo
+
+Base: `main` após o merge das correções de integração, commit
+`7a4db579352501a1cb97adf3e0325e580cba73a0`. Branch de destino:
+`branch-solid-paulo`. Nenhum arquivo do modelo, persistência, renderizador ou
+UML foi alterado nesta etapa. A revisão crítica continua adiada.
+
+- `JogoService` deixa de imprimir ou formatar mensagens e de escolher tipos
+  concretos de passageiros.
+- `JogoConsole` concentra a apresentação; seu `PrintStream` é injetado.
+- `FabricaMissao` concentra criação e posicionamento, com catálogo configurável.
+- Os testes existentes foram adaptados para o construtor com cinco dependências,
+  preservando as verificações de vitória, pouso, pontuação e erros de arquivo.
+- Os quatro testes passaram em Java 17, e o original continua compilando.
+
+### `SolidPauloTest`
+
+Um novo passageiro `Cientista`, definido somente no teste, entra pelo catálogo.
+A mesma rota de vitória termina com 97 pontos, pois seu bônus é 25 em vez dos
+10 do professor substituído. Isso demonstra extensão do fluxo sem editar o
+serviço. O teste também verifica:
+
+- configurações padrão fácil, médio e difícil, com capacidade cinco;
+- geração de posições sem sobreposição e fora da origem;
+- busca alternativa que termina mesmo com gerador aleatório constante;
+- catálogo ampliado com seis passageiros e capacidade suficiente;
+- rejeição de mapa pequeno demais antes de iniciar a geração;
+- menu e estatísticas escritos no console injetado.
